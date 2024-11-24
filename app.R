@@ -6,31 +6,33 @@ library(shinythemes)
 library(dplyr)
 library(highcharter)
 
-# dummy data
-data(diamonds, package = "ggplot2")
-diamonds <- 
-    diamonds |> 
-    mutate(
-        abc = sample(
-            c("A", "B", "C"),
-            replace = TRUE,
-            size = nrow(diamonds)))
-
+raw <- readRDS("data.rds")
+dat <- raw |> 
+    as_tibble() |> 
+    select(
+        term,
+        goal_channel_type,
+        user_group,
+        sku,
+        goal_operation_group,
+        goal_class_tag,
+        renewal_counselor_group_city
+    )
 
 ui <- fluidPage(
     theme = shinytheme("yeti"),
     fluidRow(
-        column(12, selectInput("abc", "Choices", 
-                               sort(unique(diamonds$abc)))),
+        column(12, selectInput("termSelect", "Term", 
+                               unique(dat$term))),
         highchartOutput("hc"))
     )
 
 server <- function(input, output) {
     
     dataInput <- reactive({
-        diamonds |> 
-            filter(abc == input$abc) |> 
-            select(cut, color, clarity)
+        dat |> 
+            filter(term == input$termSelect) |> 
+            select(-term) # drop
     })
     
     output$hc <- renderHighchart({
